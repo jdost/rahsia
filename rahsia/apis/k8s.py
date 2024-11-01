@@ -34,7 +34,12 @@ class SecretsManager:
         self._requests = {}
 
     async def start(self) -> None:
-        # Put in manual config.load_kube_config here for development
+        # Put in manual config.load_kube_config here for development, eg:
+        #  from pathlib import Path
+        #  await config.load_kube_config(
+        #      config_file=str(Path.home() / ".kube/config"),
+        #      context="efault",
+        #  )
         config.load_incluster_config()
         create_task(self.watch_requests())
         create_task(self.watch_secrets())

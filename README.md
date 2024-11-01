@@ -14,3 +14,10 @@ It is made up of 3 parts:
    interface for manipulating/reconciling the requested and actual state of secrets
 3. A React based frontend for easily seeing the state and filling missing/outdated
    secrets
+
+## Developing
+
+Since the k8s side is written to expect being in cluster, you should go into the
+`rahsia/apis/k8s.py` file and change the `config.load_incluster_config()` call with
+a manual `config.load_config` call with the target config and context.  (see the
+example in the comment there)

@@ -12,6 +12,7 @@ packages = [
 python = "^3.12"
 fastapi = "^0.115.0"
 uvicorn = "^0.31.0"
+kubernetes-asyncio = "^31.1.0"
 
 [tool.poetry.scripts]
 rahsia = "rahsia:main"

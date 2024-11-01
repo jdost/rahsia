@@ -1,0 +1,12 @@
+apiVersion: "jdost.us/v1alpha1"
+kind: SecretRequest
+metadata:
+  name: minio-root-credentials
+  namespace: default
+
+spec:
+  secrets:
+  - name: root-username
+    note: username used for the root access login
+  - name: root-password
+    note: password used for the root access login

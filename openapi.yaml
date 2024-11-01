@@ -1,0 +1,175 @@
+openapi: 3.0.3
+info:
+  description: |-
+    Small k8s operator/app for defining secrets based on requested secrets from
+    manifests using a CRD.  The idea is to avoid committing secrets to public
+    manifests and instead define them in a simple way.  This is meant to be a
+    lightweight solution for homelab setups where something larger like vault or
+    cloud based solutions are unnecessary.
+  title: Rahsia
+  version: 0.1.0
+servers:
+- url: /
+tags:
+- description: Manage secrets
+  name: secrets
+- description: Authentication for secrets management
+  name: auth
+paths:
+  /secret:
+    get:
+      description: List managed secrets
+      operationId: listSecrets
+      parameters:
+      - description: Filter namespace for secrets
+        explode: false
+        in: query
+        name: namespace
+        required: false
+        schema:
+          type: string
+        style: form
+      - description: Whether to get all or just pending secrets requests
+        explode: false
+        in: query
+        name: all
+        required: false
+        schema:
+          type: boolean
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/SecretsRequest'
+                type: array
+          description: successful operation
+      tags:
+      - secrets
+    post:
+      description: Set the requested secret values
+      operationId: setSecret
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Secret'
+        description: Set a requested secret
+      responses:
+        "200":
+          description: successful operation
+        "400":
+          description: failed validation
+      tags:
+      - secrets
+components:
+  schemas:
+    SecretRequest:
+      title: SecretRequest
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          description: Name/Key of the secret requested
+          example: password
+          title: name
+          type: string
+        length:
+          description: Length of current value (0 if unset)
+          title: length
+          type: integer
+        note:
+          description: Note/helper description on the requested secret
+          example: Password used for logging into Rahsia
+          title: note
+          type: string
+      example:
+        note: Password used for logging into Rahsia
+        name: password
+        length: 0
+    SecretsRequest:
+      title: SecretsRequest
+      type: object
+      required:
+      - name
+      - namespace
+      - secrets
+      properties:
+        name:
+          description: Name of the group of secrets requested
+          example: rahsia
+          title: name
+          type: string
+        namespace:
+          description: Location/namespace for the requested secrets
+          title: namespace
+          type: string
+        secrets:
+          items:
+            $ref: '#/components/schemas/SecretRequest'
+          title: secrets
+          type: array
+      example:
+        name: rahsia
+        namespace: namespace
+        secrets:
+        - note: Password used for logging into Rahsia
+          name: password
+          length: 0
+        - note: Password used for logging into Rahsia
+          name: password
+          length: 0
+    Secret:
+      title: Secret
+      type: object
+      required:
+      - name
+      - namespace
+      - secrets
+      properties:
+        name:
+          description: Name of the group of secrets being set
+          example: rahsia
+          title: name
+          type: string
+        namespace:
+          description: Location/namespace for the target secret
+          example: default
+          title: namespace
+          type: string
+        secrets:
+          items:
+            $ref: '#/components/schemas/SecretField'
+          title: secrets
+          type: array
+      example:
+        name: rahsia
+        namespace: default
+        secrets:
+        - name: password
+          value: SUPER_SECRET_PASSWORD
+        - name: password
+          value: SUPER_SECRET_PASSWORD
+    SecretField:
+      title: SecretField
+      type: object
+      required:
+      - name
+      - value
+      properties:
+        name:
+          description: Name/key for the individual secret
+          example: password
+          title: name
+          type: string
+        value:
+          description: Value for the secret being defined
+          example: SUPER_SECRET_PASSWORD
+          title: value
+          type: string
+      example:
+        name: password
+        value: SUPER_SECRET_PASSWORD

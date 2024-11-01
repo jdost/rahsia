@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "rahsia"
+version = "0.1.0"
+description = ""
+authors = ["Jeff <jdost@users.noreply.github.com>"]
+readme = "README.md"
+packages = [
+    { include = "rahsia" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.115.0"
+uvicorn = "^0.31.0"
+
+[tool.poetry.scripts]
+rahsia = "rahsia:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

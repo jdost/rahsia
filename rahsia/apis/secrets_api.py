@@ -1,31 +1,17 @@
 # coding: utf-8
 
-from typing import Dict, List  # noqa: F401
 import importlib
 import pkgutil
+from typing import Dict, List  # noqa: F401
 
-from rahsia.apis.secrets_api_base import BaseSecretsApi
 import rahsia.impl
-
-from fastapi import (  # noqa: F401
-    APIRouter,
-    Body,
-    Cookie,
-    Depends,
-    Form,
-    Header,
-    HTTPException,
-    Path,
-    Query,
-    Response,
-    Security,
-    status,
-)
-
+from fastapi import (APIRouter, Body, Cookie, Depends, Form,  # noqa: F401
+                     Header, HTTPException, Path, Query, Response, Security,
+                     status)
+from rahsia.apis.secrets_api_base import BaseSecretsApi
 from rahsia.models.extra_models import TokenModel  # noqa: F401
 from rahsia.models.secret import Secret
 from rahsia.models.secrets_request import SecretsRequest
-
 
 router = APIRouter()
 
@@ -41,6 +27,7 @@ for _, name, _ in pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + "."):
     },
     tags=["secrets"],
     response_model_by_alias=True,
+    operation_id="listSecrets",
 )
 async def list_secrets(
     namespace: str = Query(None, description="Filter namespace for secrets", alias="namespace"),
@@ -60,11 +47,13 @@ async def list_secrets(
     },
     tags=["secrets"],
     response_model_by_alias=True,
+    operation_id="setSecret",
 )
 async def set_secret(
     secret: Secret = Body(None, description="Set a requested secret"),
+    response: Response = Response(),
 ) -> None:
     """Set the requested secret values"""
     if not BaseSecretsApi.subclasses:
         raise HTTPException(status_code=500, detail="Not implemented")
-    return await BaseSecretsApi.subclasses[0]().set_secret(secret)
+    return await BaseSecretsApi.subclasses[0]().set_secret(secret, response)

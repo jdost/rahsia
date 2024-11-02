@@ -79,28 +79,32 @@ class SecretsManager:
                         pass
 
     async def watch_secrets(self) -> None:
-        async with ApiClient() as api:
-            core_api = client.CoreV1Api(api)
-            async with watch.Watch().stream(
-                core_api.list_secret_for_all_namespaces
-            ) as stream:
-                async for event in stream:
-                    if event['type'] == 'ADDED' or event['type'] == 'MODIFIED':
-                        req = k8s_models.Secret.from_kubernetes(event['object'])
-                        async with self.lock:
-                            secrets = req.secrets
-                            req.secrets = {k: b64decode(v).decode() for k, v in secrets.items()}
-                            self._secrets[f"{req.namespace}.{req.name}"] = req
-                    elif event['type'] == 'DELETED':
-                        req = k8s_models.Secret.from_kubernetes(event['object'])
-                        async with self.lock:
-                            k = f"{req.namespace}.{req.name}"
-                            if k in self._secrets:
-                                del self._secrets[k]
-                    else:
-                        # TODO: Remove these, ensure all event types handled
-                        print("Unhandled Secret event:")
-                        print(event)
+        while True:
+            async with ApiClient() as api:
+                core_api = client.CoreV1Api(api)
+                async with watch.Watch().stream(
+                    core_api.list_secret_for_all_namespaces
+                ) as stream:
+                    try:
+                        async for event in stream:
+                            if event['type'] == 'ADDED' or event['type'] == 'MODIFIED':
+                                req = k8s_models.Secret.from_kubernetes(event['object'])
+                                async with self.lock:
+                                    secrets = req.secrets
+                                    req.secrets = {k: b64decode(v).decode() for k, v in secrets.items()}
+                                    self._secrets[f"{req.namespace}.{req.name}"] = req
+                            elif event['type'] == 'DELETED':
+                                req = k8s_models.Secret.from_kubernetes(event['object'])
+                                async with self.lock:
+                                    k = f"{req.namespace}.{req.name}"
+                                    if k in self._secrets:
+                                        del self._secrets[k]
+                            else:
+                                # TODO: Remove these, ensure all event types handled
+                                print("Unhandled Secret event:")
+                                print(event)
+                    except client.exceptions.ApiException:
+                        pass
 
     def gen_secrets_request(self, key: str, req) -> SecretsRequest:
         existing_secret = self._secrets.get(key)

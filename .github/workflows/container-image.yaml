@@ -57,7 +57,7 @@ jobs:
 
       # Update the floating `latest` tag for images on main
       - name: Build and push Docker image
-        if: ${{ github.branch_name == 'main' }}
+        if: ${{ github.ref_name == 'main' }}
         id: update-latest-tag
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:

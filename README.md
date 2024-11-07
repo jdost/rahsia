@@ -15,6 +15,23 @@ It is made up of 3 parts:
 3. A React based frontend for easily seeing the state and filling missing/outdated
    secrets
 
+## Deploying
+
+I have included some base k8s manifests defined via kustomize, if you just want to
+deploy locally (with kustomize) you can add a `kustomization.yaml` file like:
+
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- https://github.com/jdost/rahsia//manifests/?timeout=120
+```
+
+and then you can just deploy/apply via `kubectl apply -k .` and it will generate the
+resources via kustomize and deploy.  (See kustomize docs for various transforms,
+can include additional resources like an ingress if you want one)
+
 ## Developing
 
 Since the k8s side is written to expect being in cluster, you should go into the

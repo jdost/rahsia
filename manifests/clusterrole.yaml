@@ -1,0 +1,34 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rahsia
+
+rules:
+- apiGroups: [""]
+  resources:
+  - secrets
+  verbs:
+  - create
+  - patch
+  - update
+  - watch
+- apiGroups: ["jdost.us"]
+  resources:
+  - secretrequests
+  verbs:
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rahsia
+
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rahsia
+subjects:
+- kind: ServiceAccount
+  name: rahsia
+  namespace: default

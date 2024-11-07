@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rahsia
+
+spec:
+  selector:
+    app: rahsia
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: http
+    name: http

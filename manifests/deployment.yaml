@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rahsia
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rahsia
+  template:
+    metadata:
+      labels:
+        app: rahsia
+        app.kubernetes.io/name: rahsia
+    spec:
+      serviceAccountName: rahsia
+      automountServiceAccountToken: true
+      containers:
+      - name: rahsia
+        image: ghcr.io/jdost/rahsia:latest
+        command:
+        - "uvicorn"
+        - "--host"
+        - "0.0.0.0"
+        - "rahsia:app"
+        ports:
+        - containerPort: 8000
+          name: http
+        resources:
+          requests:
+            cpu: "0.1"
+            memory: "128Mi"
+          limits:
+            cpu: "0.25"
+            memory: "256Mi"

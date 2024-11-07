@@ -3,3 +3,7 @@ kind: Kustomization
 
 resources:
 - ./crd/SecretRequest.yaml
+- ./serviceaccount.yaml
+- ./clusterrole.yaml
+- ./deployment.yaml
+- ./service.yaml

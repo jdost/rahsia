@@ -1,4 +1,3 @@
-
 from asyncio import Lock, create_task
 from base64 import b64decode
 from contextlib import asynccontextmanager
@@ -38,7 +37,7 @@ class SecretsManager:
         #  from pathlib import Path
         #  await config.load_kube_config(
         #      config_file=str(Path.home() / ".kube/config"),
-        #      context="efault",
+        #      context="default",
         #  )
         config.load_incluster_config()
         create_task(self.watch_requests())
@@ -68,9 +67,15 @@ class SecretsManager:
                                     if k in self._requests:
                                         del self._requests[k]
                                     if k in self._secrets:
-                                        # TODO: Figure out how the lifecycle between request and secret should be
-                                        #   handled, delete secret alongside request? or preserve?
+                                        # We shouldn't cull the secret if the request gets deleted
+                                        #   as in some tests, we get false deletes w/ a quick
+                                        #   create, probably something weird with etcd?
                                         print(f"Secret {k} exists but request removed.")
+                            elif event['type'] == 'MODIFIED':
+                                # Unsure how much to do upon modification, just overwrite for now
+                                req = k8s_models.SecretsRequest.from_kubernetes(event['object'])
+                                async with self.lock:
+                                    self._requests[f"{req.namespace}.{req.name}"] = req
                             else:
                                 # TODO: Remove these, ensure all event types handled
                                 print("Unhandled SecretRequest event:")
@@ -90,8 +95,6 @@ class SecretsManager:
                             if event['type'] == 'ADDED' or event['type'] == 'MODIFIED':
                                 req = k8s_models.Secret.from_kubernetes(event['object'])
                                 async with self.lock:
-                                    secrets = req.secrets
-                                    req.secrets = {k: b64decode(v).decode() for k, v in secrets.items()}
                                     self._secrets[f"{req.namespace}.{req.name}"] = req
                             elif event['type'] == 'DELETED':
                                 req = k8s_models.Secret.from_kubernetes(event['object'])
@@ -99,6 +102,10 @@ class SecretsManager:
                                     k = f"{req.namespace}.{req.name}"
                                     if k in self._secrets:
                                         del self._secrets[k]
+                            elif event['type'] == 'MODIFIED':
+                                req = k8s_models.Secret.from_kubernetes(event['object'])
+                                async with self.lock:
+                                    self._secrets[f"{req.namespace}.{req.name}"] = req
                             else:
                                 # TODO: Remove these, ensure all event types handled
                                 print("Unhandled Secret event:")

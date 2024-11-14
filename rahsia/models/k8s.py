@@ -1,3 +1,4 @@
+from base64 import b64decode
 from typing import Any, Dict, Mapping, Sequence
 
 import pydantic
@@ -35,10 +36,21 @@ class Secret(pydantic.BaseModel):
 
     @classmethod
     def from_kubernetes(cls, data) -> 'Secret':
+        secrets = {}
+        for k, v in (data.data.items() if data.data else []):
+            try:
+                secrets[k] = b64decode(v).decode()
+            except UnicodeDecodeError:
+                # Some secrets are just raw data (like compressed files?) so
+                # preserve if they fail to decode, could decode the byte string
+                # but it breaks typing and we really don't care about these
+                # (they shouldn't be managed via our requests)
+                secrets[k] = v
+
         return cls(
             name=data.metadata.name,
             namespace=data.metadata.namespace,
-            secrets={**data.data} if data.data else {},
+            secrets=secrets,
         )
 
     def __repr__(self) -> str:

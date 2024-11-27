@@ -1,3 +1,6 @@
+import aiohttp.client_exceptions
+import aiohttp.http_exceptions
+
 from asyncio import Lock, create_task
 from base64 import b64decode
 from contextlib import asynccontextmanager
@@ -82,6 +85,10 @@ class SecretsManager:
                                 print(event)
                     except client.exceptions.ApiException:
                         pass
+                    except aiohttp.client_exceptions.ClientPayloadError:
+                        pass
+                    except aiohttp.http_exceptions.TransferEncodingError:
+                        pass
 
     async def watch_secrets(self) -> None:
         while True:
@@ -111,6 +118,10 @@ class SecretsManager:
                                 print("Unhandled Secret event:")
                                 print(event)
                     except client.exceptions.ApiException:
+                        pass
+                    except aiohttp.client_exceptions.ClientPayloadError:
+                        pass
+                    except aiohttp.http_exceptions.TransferEncodingError:
                         pass
 
     def gen_secrets_request(self, key: str, req) -> SecretsRequest:

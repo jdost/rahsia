@@ -19,6 +19,7 @@ spec:
       containers:
       - name: rahsia
         image: ghcr.io/jdost/rahsia:latest
+        imagePullPolicy: Always
         command:
         - "uvicorn"
         - "--host"
